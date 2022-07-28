@@ -78,7 +78,7 @@ interact with the database. In our `lib/song.py` file, we can therefore access
 these constants like this:
 
 ```py
-from config import CONN, CURSOR
+from . import CONN, CURSOR
 ```
 
 The starter code for these files is set up, so you can explore it and code along
@@ -172,14 +172,14 @@ Check out the code in the `debug.py` file:
 ```py
 #!/usr/bin/env python3
 
-from config import CONN, CURSOR
+from . import CONN, CURSOR
 from song import Song
 
 import ipdb; ipdb.set_trace()
 ```
 
 In this file, we're importing in the `sqlite3.Connection` and `sqlite3.Cursor`
-objects that we instantiated in `lib/config.py`. We're also importing the
+objects that we instantiated in `lib/__init__.py`. We're also importing the
 `Song` class so that we can use its methods during our `pdb` session.
 
 Run `python debug.py` to enter `pdb`, then run the `create_table()` method:
@@ -546,10 +546,6 @@ Excellent! Run `pipenv install` and `pipenv shell` if you have not yet to set up
 your virtual environment. Run `pytest -x` now to pass the tests, then submit the
 assignment using `git`.
 
-> **Note: You may have to delete your existing database for all of the tests to
-> pass- SQLite sometimes "locks" databases that have been accessed by multiple
-> modules.**
-
 ***
 
 ## Conclusion
@@ -571,51 +567,6 @@ it has little sprinkles on it. Those aspects are captured in the picture, but
 the cookie and the picture are still two different things. After you eat the
 cookie, or in our case after you delete the Python object, the database will not
 change at all until the record is deleted, and vice versa.
-
-***
-
-## Solution Code
-
-```py
-from config import CONN, CURSOR
-
-class Song:
-
-    def __init__(self, name, album):
-        self.id = None
-        self.name = name
-        self.album = album
-
-    @classmethod
-    def create_table(cls):
-        sql = """
-            CREATE TABLE IF NOT EXISTS songs (
-                id INTEGER PRIMARY KEY,
-                name TEXT,
-                album TEXT
-            )
-        """
-
-        CURSOR.execute(sql)
-
-    def save(self):
-        sql = """
-            INSERT INTO songs (name, album)
-            VALUES (?, ?)
-        """
-
-        CURSOR.execute(sql, (self.name, self.album))
-        CONN.commit()
-
-        self.id = CURSOR.execute("SELECT last_insert_rowid() FROM songs").fetchone()[0]
-
-    @classmethod
-    def create(cls, name, album):
-        song = Song(name, album)
-        song.save()
-        return song
-
-```
 
 ***
 
